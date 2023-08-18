@@ -6,10 +6,10 @@ class User extends Model {}
 
 User.init(
   {
-    uid: {
-      type: Sequelize.UUID,
+    id: {
+      type: Sequelize.INTEGER,
       primaryKey: true,
-      defaultValue: Sequelize.UUIDV4,
+      // defaultValue: Sequelize.UUIDV4,
     },
     username: {
       type: Sequelize.STRING,
@@ -48,6 +48,10 @@ User.init(
   }
 );
 
-User.sync();
+User.sync().then(
+  (res) => console.log("success make table user")
+).catch(
+  (err) => console.log("failed make table user : ", err)
+)
 
 module.exports = { User };
