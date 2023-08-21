@@ -1,49 +1,41 @@
-const { db } = require("../databases/mysql");
-const Sequelize = require("sequelize");
-const Model = Sequelize.Model;
-
-class Mahasiswa extends Model {}
-
-Mahasiswa.init(
-  {
-    id: {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      // defaultValue: Sequelize.INTE,
-      allowNull: false,
-    },
-    name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
-    birthday_date: {
-      type: Sequelize.STRING,
-      allowNull: true,
-      validate: {
-        isDate: true
-      }
-    },
-    fakultas_id: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
-    role_id: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
-  },
-  {
-    sequelize: db,
-    modelName: "mahasiswa",
-    tableName: "mahasiswa",
-    timestamps: true,
+"use strict";
+const { Model } = require("sequelize");
+module.exports = (sequelize, DataTypes) => {
+  class Mahasiswa extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+      Mahasiswa.hasMany(models.UserMahasiswa, { foreignKey: "mahasiswa_id" });
+      Mahasiswa.belongsTo(models.Fakultas, {
+        foreignKey: "fakultas_id",
+        targetKey: "id",
+      });
+      Mahasiswa.belongsTo(models.Role, {
+        foreignKey: "role_id",
+        targetKey: "id",
+      });
+      Mahasiswa.hasMany(models.Desa, { foreignKey: "mahasiswa_id" });
+    }
   }
-);
-
-Mahasiswa.sync().then(
-  (res) => console.log("success make table mahasiswa")
-).catch(
-  (err) => console.log("failed make table mahasiswa : ", err)
-)
-
-module.exports = { Mahasiswa };
+  Mahasiswa.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      uid_mhs: DataTypes.UUID,
+      birthday_date: DataTypes.DATE,
+      fakultas_id: DataTypes.INTEGER,
+      role_id: DataTypes.INTEGER,
+    },
+    {
+      sequelize,
+      modelName: "Mahasiswa",
+    }
+  );
+  return Mahasiswa;
+};

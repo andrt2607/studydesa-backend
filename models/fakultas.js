@@ -1,29 +1,26 @@
-const {db} = require('../databases/mysql')
-const Sequelize = require('sequelize') 
-const Model = Sequelize.Model
-
-class Fakultas extends Model{}
-
-Fakultas.init({
-    id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
+"use strict";
+const { Model } = require("sequelize");
+module.exports = (sequelize, DataTypes) => {
+  class Fakultas extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+      Fakultas.hasMany(models.Mahasiswa, { foreignKey: "fakultas_id" });
+    }
+  }
+  Fakultas.init(
+    {
+      name: DataTypes.STRING,
+      score: DataTypes.INTEGER,
     },
-    name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
-},{
-    sequelize: db,
-    modelName: 'fakultas',
-    tableName: 'fakultas',
-    timestamps: true
-})
-
-// Fakultas.sync().then(
-//     (res) => console.log("success make table fakultas")
-// ).catch(
-//     (err) => console.log("failed make table fakultas : ", err)
-// )
-
-module.exports = {Fakultas}
+    {
+      sequelize,
+      modelName: "Fakultas",
+    }
+  );
+  return Fakultas;
+};

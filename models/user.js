@@ -1,57 +1,46 @@
-const { db } = require("../databases/mysql");
-const Sequelize = require("sequelize");
-const Model = Sequelize.Model;
-
-class User extends Model {}
-
-User.init(
-  {
-    id: {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      // defaultValue: Sequelize.UUIDV4,
-    },
-    username: {
-      type: Sequelize.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    email: {
-      type: Sequelize.STRING,
-      allowNull: true,
-      unique: true,
-      validate: {
-        isEmail: true,
-      },
-    },
-    password: {
-      type: Sequelize.STRING,
-      allowNull: false,
-      validate: {
-        len: [6],
-      },
-    },
-    phone: {
-      type: Sequelize.STRING,
-      allowNull: true,
-      validate: {
-        isNumeric: true,
-        len: [12],
-      },
-    },
-  },
-  {
-    sequelize: db,
-    modelName: "user",
-    tableName: "user",
-    timestamps: true,
+"use strict";
+const { Model } = require("sequelize");
+const bcrypt = require("bcrypt");
+module.exports = (sequelize, DataTypes) => {
+  class User extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+      User.hasMany(models.UserMahasiswa, { foreignKey: "user_id" });
+    }
   }
-);
-
-User.sync().then(
-  (res) => console.log("success make table user")
-).catch(
-  (err) => console.log("failed make table user : ", err)
-)
-
-module.exports = { User };
+  User.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      uid_mhs: DataTypes.UUID,
+      username: DataTypes.STRING,
+      email: DataTypes.STRING,
+      password: DataTypes.STRING,
+      phone: DataTypes.STRING,
+    },
+    {
+      hooks: {
+        beforeCreate: async (user) => {
+          if (user.password) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(user.password, salt);
+          }
+          console.log("ini password yg di bcrypt : ", user.password);
+        },
+      },
+      sequelize,
+      modelName: "User",
+    }
+  );
+  User.prototype.CheckPassword = async (requestPassword, dbPassword) => {
+    return await bcrypt.compare(requestPassword, dbPassword);
+  };
+  return User;
+};
