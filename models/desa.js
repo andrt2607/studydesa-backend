@@ -20,10 +20,25 @@ module.exports = (sequelize, DataTypes) => {
       name: DataTypes.STRING,
       uid: DataTypes.UUID,
       problem: DataTypes.STRING,
-      lat_des: DataTypes.STRING,
-      long_des: DataTypes.STRING,
-      photo: DataTypes.STRING,
-      contact_person: DataTypes.STRING,
+      lat_des: {
+        type: DataTypes.STRING,
+      },
+      long_des: {
+        type: DataTypes.STRING,
+      },
+      photo: {
+        type: DataTypes.STRING,
+        validate: {
+          isUrl: true
+        }
+      },
+      contact_person: {
+        type: DataTypes.STRING,
+        validate: {
+          isNumeric: true,
+          len: [12]
+        }
+      },
       mahasiswa_id: DataTypes.INTEGER,
     },
     {

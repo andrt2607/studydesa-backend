@@ -1,13 +1,19 @@
 // const desa = require("../../models/desa");
 const { Op } = require("sequelize");
-const { Desa } = require("../../models");
+const { Desa, User, UserMahasiswa } = require("../../models");
 const { v4 } = require("uuid");
 
 const createDesa = async (req, res) => {
   try {
     let { name, problem, lat_des, long_des, photo, contact_person } = req.body;
     const idv4 = v4();
-    // console.log("tes", name);
+    const dataMahasiswa = await UserMahasiswa.findOne({
+      where: {
+        user_id: {
+          [Op.eq]: req.params.currentUser.id
+        },
+      },
+    });
     const result = await Desa.create({
       uid: idv4,
       name,
@@ -16,6 +22,7 @@ const createDesa = async (req, res) => {
       long_des,
       photo,
       contact_person,
+      mahasiswa_id: dataMahasiswa.mahasiswa_id
     });
     return res.status(201).json({
       message: "Berhasil buat data desa",
@@ -134,6 +141,9 @@ const deleteDesa = async (req, res) => {
         [Op.eq]: req.params.id,
       },
     },
+  });
+  return res.status(200).json({
+    message: "Data berhasil dihapus",
   });
 };
 

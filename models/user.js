@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       User.hasMany(models.UserMahasiswa, { foreignKey: "user_id" });
+      User.belongsTo(models.Role, {
+        foreignKey: "role_id",
+        targetKey: "id",
+      });
     }
   }
   User.init(
@@ -18,12 +22,36 @@ module.exports = (sequelize, DataTypes) => {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
+        allowNull: false,
       },
-      uid_mhs: DataTypes.UUID,
-      username: DataTypes.STRING,
-      email: DataTypes.STRING,
-      password: DataTypes.STRING,
-      phone: DataTypes.STRING,
+      uuid_mhs: DataTypes.UUID,
+      username: {
+        type: DataTypes.STRING,
+        validate: {
+          len: [12]
+        }
+      },
+      email: {
+        type: DataTypes.STRING,
+        validate: {
+          isEmail: true,
+        }
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          len: [6]
+        }
+      },
+      phone: {
+        type: DataTypes.STRING,
+        validate: {
+          isNumeric: true,
+          len: [12]
+        }
+      },
+      role_id: DataTypes.INTEGER,
     },
     {
       hooks: {
@@ -33,6 +61,12 @@ module.exports = (sequelize, DataTypes) => {
             user.password = await bcrypt.hash(user.password, salt);
           }
           console.log("ini password yg di bcrypt : ", user.password);
+          if (!user.role_id) {
+            const roleUser = await sequelize.models.Role.findOne({
+              where: { name: "user" },
+            });
+            user.role_id = roleUser.id;
+          }
         },
       },
       sequelize,
@@ -40,7 +74,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
   User.prototype.CheckPassword = async (requestPassword, dbPassword) => {
-    return await bcrypt.compare(requestPassword, dbPassword);
+    return await bcrypt.compareSync(requestPassword, dbPassword);
   };
   return User;
 };

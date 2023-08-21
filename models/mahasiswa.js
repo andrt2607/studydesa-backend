@@ -14,10 +14,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "fakultas_id",
         targetKey: "id",
       });
-      Mahasiswa.belongsTo(models.Role, {
-        foreignKey: "role_id",
-        targetKey: "id",
-      });
+      
       Mahasiswa.hasMany(models.Desa, { foreignKey: "mahasiswa_id" });
     }
   }
@@ -27,10 +24,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         primaryKey: true,
       },
-      uid_mhs: DataTypes.UUID,
+      uuid_mhs: DataTypes.UUID,
       birthday_date: DataTypes.DATE,
       fakultas_id: DataTypes.INTEGER,
-      role_id: DataTypes.INTEGER,
+      
     },
     {
       sequelize,
