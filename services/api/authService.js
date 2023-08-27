@@ -82,7 +82,7 @@ const registerUser = async (req, res) => {
   } catch (error) {
     return res.status(400).json({
       message: "Terjadi kesalahan",
-      data: {},
+      data: error.errors,
     });
   }
 };

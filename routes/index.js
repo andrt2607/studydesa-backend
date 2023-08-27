@@ -6,5 +6,6 @@ var router = require("express").Router();
 router.use("/desa", require("./desaRouter"));
 router.use("/auth", require("./authRouter"));
 router.use("/mahasiswa", require("./mahasiswaRouter"));
+router.use("/role", require("./roleRouter"));
 
 module.exports = router;

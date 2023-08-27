@@ -18,12 +18,23 @@ module.exports = {
       },
       email: {
         type: Sequelize.STRING,
+        validate: {
+          isEmail: true,
+        }
       },
       password: {
         type: Sequelize.STRING,
+        allowNull: false,
+        validate: {
+          len: [6]
+        }
       },
       phone: {
         type: Sequelize.STRING,
+        validate: {
+          isNumeric: true,
+          len: [12]
+        }
       },
       role_id: {
         type: Sequelize.INTEGER,
