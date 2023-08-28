@@ -1,8 +1,9 @@
 const { where, Op } = require("sequelize");
 const { User, Mahasiswa, UserMahasiswa } = require("../../models");
-const {v4} = require('uuid')
+const { v4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 const user = require("../../models/user");
+const { StatusCodes } = require("http-status-codes");
 
 const createJWT = (username) => {
   return jwt.sign({ username }, process.env.JWT_SECRET, {
@@ -10,7 +11,30 @@ const createJWT = (username) => {
   });
 };
 
-const getUserByUid = async (req, res) => {
+const createSendToken = (user, statusCode, res) => {
+  console.log("ini value user", user);
+  const token = createJWT(user.username);
+  console.log("ini token cookie", token);
+
+  const cookieOption = {
+    //untuk mengubah menjadi milisecond
+    expire: new Date(
+      Date.now() + process.env.JWT_COOKIES_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+  user.password = undefined;
+  res.cookie("jwt", token, cookieOption);
+  res.status(statusCode).json({
+    status: "success",
+    // token,
+    data: {
+      user,
+    },
+  });
+};
+
+const getUserByUid = async (req, res, next) => {
   try {
     const result = await User.findOne({
       where: {
@@ -30,14 +54,15 @@ const getUserByUid = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    return res.status(400).json({
-      message: "Terjadi kesalahan",
-      data: {},
-    });
+    next(error);
+    // return res.status(400).json({
+    //   message: "Terjadi kesalahan",
+    //   data: {},
+    // });
   }
 };
 
-const registerUser = async (req, res) => {
+const registerUser = async (req, res, next) => {
   try {
     let { username, email, password, phone } = req.body;
     const uuid_mhs = v4();
@@ -53,41 +78,44 @@ const registerUser = async (req, res) => {
     const newMahasiswa = await Mahasiswa.create({
       uuid_mhs: result.uuid_mhs,
       // birthday_date: null
-    })
+    });
     // console.log('ini result user_id : ', result.id)
     // console.log('ini result mahasiswa_id : ', newMahasiswa.id)
     const dataUserByUUID = await User.findOne({
       where: {
-        uuid_mhs:{
-          [Op.eq]: result.uuid_mhs
-        }
-      }
-    })
+        uuid_mhs: {
+          [Op.eq]: result.uuid_mhs,
+        },
+      },
+    });
     const dataMahasiswaByUUID = await Mahasiswa.findOne({
       where: {
-        uuid_mhs:{
-          [Op.eq]: newMahasiswa.uuid_mhs
-        }
-      }
-    })
+        uuid_mhs: {
+          [Op.eq]: newMahasiswa.uuid_mhs,
+        },
+      },
+    });
     const newUserMhs = await UserMahasiswa.create({
-      user_id:dataUserByUUID.id,
-      mahasiswa_id:dataMahasiswaByUUID.id
-    })
+      user_id: dataUserByUUID.id,
+      mahasiswa_id: dataMahasiswaByUUID.id,
+    });
     // console.log('ini usermahasiswa : ', newUserMhs)
-    return res.status(201).json({
-      message: "Berhasil register user",
-      data: result,
-    });
+    // return res.status(201).json({
+    //   message: "Berhasil register user",
+    //   data: result,
+    // });
+    createSendToken(result, 201, res);
   } catch (error) {
-    return res.status(400).json({
-      message: "Terjadi kesalahan",
-      data: error.errors,
-    });
+    console.log("erorrrrrr", error);
+    // return res.status(400).json({
+    //   message: "Terjadi kesalahan",
+    //   data: error.errors,
+    // });
+    next(error);
   }
 };
 
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
   try {
     let { username, password, confirmPassword } = req.body;
     // const params = req.channel
@@ -114,28 +142,30 @@ const loginUser = async (req, res) => {
         data: {},
       });
     }
-    console.log('password ', password)
-    console.log('password db', userData.password)
-    if (!await userData.CheckPassword(password, userData.password)) {
+    console.log("password ", password);
+    console.log("password db", userData.password);
+    if (!(await userData.CheckPassword(password, userData.password))) {
       return res.status(400).json({
         message: "Password user salah",
         data: {},
       });
-    }else{
-      const token = createJWT(userData.username);
-      console.log('ini token : ', token)
-      return res.status(201).json({
-        message: "Berhasil login user",
-        token,
-        // data: reuslt,
-      });
+    } else {
+      // const token = createJWT(userData.username);
+      // console.log("ini token : ", token);
+      // return res.status(201).json({
+      //   message: "Berhasil login user",
+      //   token,
+      //   // data: reuslt,
+      // });
+      createSendToken(userData, 200, res);
     }
     // return
   } catch (error) {
-    return res.status(400).json({
-      message: "Terjadi kesalahan",
-      data: {},
-    });
+    next(error);
+    // return res.status(400).json({
+    //   message: "Terjadi kesalahan",
+    //   data: {},
+    // });
   }
 };
 

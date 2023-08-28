@@ -3,14 +3,14 @@ const { Op } = require("sequelize");
 const { Desa, User, UserMahasiswa } = require("../../models");
 const { v4 } = require("uuid");
 
-const createDesa = async (req, res) => {
+const createDesa = async (req, res, next) => {
   try {
     let { name, problem, lat_des, long_des, photo, contact_person } = req.body;
     const idv4 = v4();
     const dataMahasiswa = await UserMahasiswa.findOne({
       where: {
         user_id: {
-          [Op.eq]: req.params.currentUser.id
+          [Op.eq]: req.params.currentUser.id,
         },
       },
     });
@@ -22,21 +22,22 @@ const createDesa = async (req, res) => {
       long_des,
       photo,
       contact_person,
-      mahasiswa_id: dataMahasiswa.mahasiswa_id
+      mahasiswa_id: dataMahasiswa.mahasiswa_id,
     });
     return res.status(201).json({
       message: "Berhasil buat data desa",
       data: result,
     });
   } catch (error) {
-    return res.status(400).json({
-      message: "Terjadi kesalahan",
-      data: {},
-    });
+    next(error);
+    // return res.status(400).json({
+    //   message: "Terjadi kesalahan",
+    //   data: {},
+    // });
   }
 };
 
-const getAllDesa = async (req, res) => {
+const getAllDesa = async (req, res, next) => {
   try {
     const result = await Desa.findAll();
     if (!result) {
@@ -50,14 +51,15 @@ const getAllDesa = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    return res.status(400).json({
-      message: "Terjadi kesalahan",
-      data: {},
-    });
+    next(error);
+    // return res.status(400).json({
+    //   message: "Terjadi kesalahan",
+    //   data: {},
+    // });
   }
 };
 
-const getDesaById = async (req, res) => {
+const getDesaById = async (req, res, next) => {
   try {
     const result = await Desa.findOne({
       where: {
@@ -77,14 +79,15 @@ const getDesaById = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    return res.status(400).json({
-      message: "Terjadi kesalahan",
-      data: {},
-    });
+    next(error);
+    // return res.status(400).json({
+    //   message: "Terjadi kesalahan",
+    //   data: {},
+    // });
   }
 };
 
-const updateDesa = async (req, res) => {
+const updateDesa = async (req, res, next) => {
   try {
     let { name, problem, lat_des, long_des, photo, contact_person } = req.body;
     let { id } = req.params;
@@ -114,10 +117,11 @@ const updateDesa = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    return res.status(400).json({
-      message: "Terjadi kesalahan",
-      data: {},
-    });
+    next(error);
+    // return res.status(400).json({
+    //   message: "Terjadi kesalahan",
+    //   data: {},
+    // });
   }
 };
 

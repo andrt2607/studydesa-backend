@@ -6,8 +6,11 @@ var logger = require("morgan");
 const sequelize = require("./databases/mysql");
 
 var router = require("./routes/index");
+const errorMiddleware = require("./middleware/errorMiddleware");
+// const { errorMiddleware } = require("./middleware/errorMiddleware");
 // var desaRouter = require("./routes/desaRouter");
 // var usersRouter = require('./routes/users');
+var cron = require("node-cron");
 
 var app = express();
 
@@ -20,9 +23,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-
 app.use("/api/v1/", router);
+app.use(errorMiddleware);
 // app.use("/", desaRouter);
+
+//setup cron scheduler
+cron.schedule("* * * * *", () => {
+  console.log("running a task every minute");
+});
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

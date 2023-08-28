@@ -29,15 +29,15 @@ module.exports = (sequelize, DataTypes) => {
       photo: {
         type: DataTypes.STRING,
         validate: {
-          isUrl: true
-        }
+          isUrl: true,
+        },
       },
       contact_person: {
         type: DataTypes.STRING,
         validate: {
           isNumeric: true,
-          len: [12]
-        }
+          len: [10, 12],
+        },
       },
       mahasiswa_id: DataTypes.INTEGER,
     },
