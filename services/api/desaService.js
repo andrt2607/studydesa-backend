@@ -2,6 +2,8 @@
 const { Op } = require("sequelize");
 const { Desa, User, UserMahasiswa } = require("../../models");
 const { v4 } = require("uuid");
+const { client } = require("../../config/redis");
+const desa = require("../../models/desa");
 
 const createDesa = async (req, res, next) => {
   try {
@@ -39,28 +41,35 @@ const createDesa = async (req, res, next) => {
 
 const getAllDesa = async (req, res, next) => {
   try {
-    const result = await Desa.findAll();
-    if (!result) {
+    const desaCache = await client.get('alldesa')
+    if(desaCache != null){
       return res.status(200).json({
-        message: "Data kosong",
-        data: result,
+        message: "Data semua desa berhasil ditemukan",
+        data: desaCache,
       });
+    }else{
+      const desaFromDB = await Desa.findAll()
+      if (desaFromDB.length === 0) {
+        return res.status(200).json({
+          message: "Data kosong",
+          data: result,
+        });
+      }else{
+        await client.set('alldesa', JSON.stringify(desaFromDB))
+        return res.status(200).json({
+          message: "Data semua desa berhasil ditemukan",
+          data: desaFromDB,
+        });
+      }
     }
-    return res.status(200).json({
-      message: "Data semua desa berhasil ditemukan",
-      data: result,
-    });
   } catch (error) {
     next(error);
-    // return res.status(400).json({
-    //   message: "Terjadi kesalahan",
-    //   data: {},
-    // });
   }
 };
 
 const getDesaById = async (req, res, next) => {
   try {
+    // const desaCache = await client.get('alldesa')
     const result = await Desa.findOne({
       where: {
         uid: {
