@@ -12,10 +12,7 @@ const createJWT = (username) => {
 };
 
 const createSendToken = (user, statusCode, res) => {
-  console.log("ini value user", user);
   const token = createJWT(user.username);
-  console.log("ini token cookie", token);
-
   const cookieOption = {
     //untuk mengubah menjadi milisecond
     expire: new Date(
@@ -27,7 +24,6 @@ const createSendToken = (user, statusCode, res) => {
   res.cookie("jwt", token, cookieOption);
   res.status(statusCode).json({
     status: "success",
-    // token,
     data: {
       user,
     },
@@ -44,21 +40,17 @@ const getUserByUid = async (req, res, next) => {
       },
     });
     if (!result) {
-      return res.status(200).json({
+      return res.status(StatusCodes.OK).json({
         message: "Data kosong",
         data: result,
       });
     }
-    return res.status(200).json({
+    return res.status(StatusCodes.OK).json({
       message: "Data user berhasil ditemukan",
       data: result,
     });
   } catch (error) {
     next(error);
-    // return res.status(400).json({
-    //   message: "Terjadi kesalahan",
-    //   data: {},
-    // });
   }
 };
 
@@ -66,7 +58,6 @@ const registerUser = async (req, res, next) => {
   try {
     let { username, email, password, phone } = req.body;
     const uuid_mhs = v4();
-    // console.log('ini generate v4 : ', idv4)
     const result = await User.create({
       uuid_mhs,
       username,
@@ -74,13 +65,9 @@ const registerUser = async (req, res, next) => {
       password,
       phone,
     });
-    // console.log('ini result user create : ', result.uuid_mhs)
     const newMahasiswa = await Mahasiswa.create({
       uuid_mhs: result.uuid_mhs,
-      // birthday_date: null
     });
-    // console.log('ini result user_id : ', result.id)
-    // console.log('ini result mahasiswa_id : ', newMahasiswa.id)
     const dataUserByUUID = await User.findOne({
       where: {
         uuid_mhs: {
@@ -99,18 +86,8 @@ const registerUser = async (req, res, next) => {
       user_id: dataUserByUUID.id,
       mahasiswa_id: dataMahasiswaByUUID.id,
     });
-    // console.log('ini usermahasiswa : ', newUserMhs)
-    // return res.status(201).json({
-    //   message: "Berhasil register user",
-    //   data: result,
-    // });
     createSendToken(result, 201, res);
   } catch (error) {
-    console.log("erorrrrrr", error);
-    // return res.status(400).json({
-    //   message: "Terjadi kesalahan",
-    //   data: error.errors,
-    // });
     next(error);
   }
 };
@@ -118,16 +95,12 @@ const registerUser = async (req, res, next) => {
 const loginUser = async (req, res, next) => {
   try {
     let { username, password, confirmPassword } = req.body;
-    // const params = req.channel
-    // console.log(params);
-    // return res.send(params)
     if (password != confirmPassword) {
       return res.status(400).json({
         message: "Password tidak sama",
         data: {},
       });
     }
-    // const idv4 = v4();
     const userData = await User.findOne({
       where: {
         username: {
@@ -135,37 +108,22 @@ const loginUser = async (req, res, next) => {
         },
       },
     });
-    // console.log("ini isi userdata : ", userData)
     if (!userData) {
       return res.status(404).json({
         message: "User tidak ditemukan",
         data: {},
       });
     }
-    console.log("password ", password);
-    console.log("password db", userData.password);
     if (!(await userData.CheckPassword(password, userData.password))) {
       return res.status(400).json({
         message: "Password user salah",
         data: {},
       });
     } else {
-      // const token = createJWT(userData.username);
-      // console.log("ini token : ", token);
-      // return res.status(201).json({
-      //   message: "Berhasil login user",
-      //   token,
-      //   // data: reuslt,
-      // });
       createSendToken(userData, 200, res);
     }
-    // return
   } catch (error) {
     next(error);
-    // return res.status(400).json({
-    //   message: "Terjadi kesalahan",
-    //   data: {},
-    // });
   }
 };
 

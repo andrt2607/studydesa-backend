@@ -1,11 +1,14 @@
 // const desa = require("../../models/desa");
 const { Op } = require("sequelize");
-const { Desa, User, UserMahasiswa } = require("../../models");
+const { Desa, UserMahasiswa } = require("../../models");
 const { v4 } = require("uuid");
 const { client } = require("../../config/redis");
-const desa = require("../../models/desa");
+const { cacheTTLUnit } = require("../../constant/constant");
+const {StatusCodes} = require('http-status-codes')
 
 const createDesa = async (req, res, next) => {
+  const cacheKey = `desa:${req.body.name}`
+  const cacheTTL = 10 * cacheTTLUnit
   try {
     let { name, problem, lat_des, long_des, photo, contact_person } = req.body;
     const idv4 = v4();
@@ -16,7 +19,7 @@ const createDesa = async (req, res, next) => {
         },
       },
     });
-    const result = await Desa.create({
+    const reqBodyNewDesa = {
       uid: idv4,
       name,
       problem,
@@ -25,43 +28,41 @@ const createDesa = async (req, res, next) => {
       photo,
       contact_person,
       mahasiswa_id: dataMahasiswa.mahasiswa_id,
-    });
-    return res.status(201).json({
+    }
+    await client.setEx(cacheKey, cacheTTL ,JSON.stringify(reqBodyNewDesa))
+    const result = await Desa.create(reqBodyNewDesa);
+    return res.status(StatusCodes.CREATED).json({
       message: "Berhasil buat data desa",
       data: result,
     });
   } catch (error) {
     next(error);
-    // return res.status(400).json({
-    //   message: "Terjadi kesalahan",
-    //   data: {},
-    // });
   }
 };
 
 const getAllDesa = async (req, res, next) => {
   try {
-    const desaCache = await client.get('alldesa')
+    const cacheKey = `alldesa`
+    const desaCache = await client.get(cacheKey)
+    const cacheTTL = 10 * cacheTTLUnit
     if(desaCache != null){
-      return res.status(200).json({
+      return res.status(StatusCodes.OK).json({
         message: "Data semua desa berhasil ditemukan",
         data: desaCache,
       });
-    }else{
+    }
       const desaFromDB = await Desa.findAll()
       if (desaFromDB.length === 0) {
-        return res.status(200).json({
+        return res.status(StatusCodes.OK).json({
           message: "Data kosong",
           data: result,
         });
-      }else{
-        await client.set('alldesa', JSON.stringify(desaFromDB))
-        return res.status(200).json({
+      }
+        await client.setEx(cacheKey, cacheTTL ,JSON.stringify(desaFromDB))
+        return res.status(StatusCodes.OK).json({
           message: "Data semua desa berhasil ditemukan",
           data: desaFromDB,
         });
-      }
-    }
   } catch (error) {
     next(error);
   }
@@ -69,30 +70,36 @@ const getAllDesa = async (req, res, next) => {
 
 const getDesaById = async (req, res, next) => {
   try {
-    // const desaCache = await client.get('alldesa')
-    const result = await Desa.findOne({
+    const cacheKey = `alldesa:${req.params.id}`
+    const cacheTTL = 10 * cacheTTLUnit
+    const desaCache = await client.get(cacheKey)
+    const respMessage = `Data desa dengan id ${req.params.id} berhasil ditemukan`
+    if(desaCache){
+      return res.status(StatusCodes.OK).json({
+        message: respMessage,
+        data: desaCache,
+      });
+    }
+    const desaFromDB = await Desa.findOne({
       where: {
         uid: {
           [Op.eq]: req.params.id,
         },
       },
     });
-    if (!result) {
-      return res.status(200).json({
-        message: "Data kosong",
-        data: result,
+    if (!desaFromDB) {
+      return res.status(StatusCodes.OK).json({
+        message: "Data desa kosong",
+        data: desaFromDB,
       });
     }
-    return res.status(200).json({
-      message: "Data desa berhasil ditemukan",
-      data: result,
+    await client.setEx(cacheKey, cacheTTL , JSON.stringify(desaFromDB))
+    return res.status(StatusCodes.OK).json({
+      message: respMessage,
+      data: desaFromDB,
     });
   } catch (error) {
     next(error);
-    // return res.status(400).json({
-    //   message: "Terjadi kesalahan",
-    //   data: {},
-    // });
   }
 };
 
@@ -108,7 +115,7 @@ const updateDesa = async (req, res, next) => {
       },
     });
     if (!result) {
-      return res.status(200).json({
+      return res.status(StatusCodes.OK).json({
         message: "Data kosong",
         data: result,
       });
@@ -121,16 +128,12 @@ const updateDesa = async (req, res, next) => {
         },
       }
     );
-    return res.status(200).json({
+    return res.status(StatusCodes.OK).json({
       message: "Data desa berhasil update",
       data: result,
     });
   } catch (error) {
     next(error);
-    // return res.status(400).json({
-    //   message: "Terjadi kesalahan",
-    //   data: {},
-    // });
   }
 };
 
@@ -143,7 +146,7 @@ const deleteDesa = async (req, res) => {
     },
   });
   if (!result) {
-    return res.status(200).json({
+    return res.status(StatusCodes.OK).json({
       message: "Data kosong",
       data: result,
     });
@@ -155,7 +158,7 @@ const deleteDesa = async (req, res) => {
       },
     },
   });
-  return res.status(200).json({
+  return res.status(StatusCodes.OK).json({
     message: "Data berhasil dihapus",
   });
 };
