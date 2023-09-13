@@ -2,7 +2,7 @@ const { where, Op } = require("sequelize");
 const { User, Mahasiswa, UserMahasiswa } = require("../../models");
 const { v4 } = require("uuid");
 const jwt = require("jsonwebtoken");
-const user = require("../../models/user");
+// const user = require("../../models/user");
 const { StatusCodes } = require("http-status-codes");
 
 const createJWT = (username) => {
@@ -34,7 +34,7 @@ const getUserByUid = async (req, res, next) => {
   try {
     const result = await User.findOne({
       where: {
-        uid: {
+        uuid_mhs: {
           [Op.eq]: req.params.id,
         },
       },
@@ -126,5 +126,7 @@ const loginUser = async (req, res, next) => {
     next(error);
   }
 };
+
+
 
 module.exports = { getUserByUid, registerUser, loginUser };

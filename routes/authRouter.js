@@ -2,6 +2,8 @@ const {
   getUserByUid,
   registerUser,
   loginUser,
+  getAllUser,
+  getUserPagination,
 } = require("../services/api/authService");
 
 var router = require("express").Router();
@@ -11,5 +13,6 @@ var router = require("express").Router();
 router.get("/:id", getUserByUid);
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+// router.get("/userpag", getUserPagination)
 
 module.exports = router;

@@ -1,10 +1,11 @@
+const { testHitQueue } = require("../services/api/testQueueService");
+
 var router = require("express").Router();
-const { authMiddleware } = require("../middleware/authMiddleware");
-const { createRole } = require("../services/api/roleService");
+// const { createRole } = require("../services/api/roleService");
 
 // const verifyToken = require('../middleware/authMiddleware')
 
 /* GET users listing. */
-router.post("/", createRole);
+router.get("/", testHitQueue);
 // router.get("/")
 module.exports = router;
