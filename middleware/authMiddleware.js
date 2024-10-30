@@ -22,6 +22,7 @@ exports.authMiddleware = async (req, res, next) => {
   let decode;
   try {
     decode = jwt.verify(token, process.env.JWT_SECRET);
+    // console.log('ini token di middleware : ', decode)
   } catch (error) {
     return next(
       res.status(401).json({

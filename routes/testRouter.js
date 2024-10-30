@@ -1,4 +1,8 @@
-const { testHitQueue } = require("../services/api/testQueueService");
+const {
+  testHitQueue,
+  uploadImageFileDesa,
+} = require("../services/api/testQueueService");
+const { uploadOption } = require("../utils/uploadFile");
 
 var router = require("express").Router();
 // const { createRole } = require("../services/api/roleService");
@@ -7,5 +11,6 @@ var router = require("express").Router();
 
 /* GET users listing. */
 router.get("/", testHitQueue);
+router.post("/imageDesa", uploadOption.single("image"), uploadImageFileDesa);
 // router.get("/")
 module.exports = router;

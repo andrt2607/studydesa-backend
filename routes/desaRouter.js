@@ -11,7 +11,8 @@ const {
 // const verifyToken = require('../middleware/authMiddleware')
 
 /* GET users listing. */
-router.post("/", authMiddleware, createDesa);
+// router.post("/", authMiddleware, createDesa);
+router.post("/", createDesa);
 router.get("/", getAllDesa);
 router.get("/:id", getDesaById);
 router.put("/:id", authMiddleware, updateDesa);

@@ -127,6 +127,15 @@ const loginUser = async (req, res, next) => {
   }
 };
 
+const logout = async (req, res) => {
+  res.cookie("jwt", "", {
+    httpOnly: true,
+    expires: new Date(0),
+  });
 
+  res.status(200).json({
+    message: "Logout Berhasil",
+  });
+};
 
-module.exports = { getUserByUid, registerUser, loginUser };
+module.exports = { getUserByUid, registerUser, loginUser, logout };

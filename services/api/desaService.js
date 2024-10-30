@@ -48,7 +48,8 @@ const getAllDesa = async (req, res, next) => {
     if(desaCache != null){
       return res.status(StatusCodes.OK).json({
         message: "Data semua desa berhasil ditemukan",
-        data: desaCache,
+        // data: desaCache,
+        data: JSON.parse(desaCache),
       });
     }
       const desaFromDB = await Desa.findAll()
@@ -77,7 +78,8 @@ const getDesaById = async (req, res, next) => {
     if(desaCache){
       return res.status(StatusCodes.OK).json({
         message: respMessage,
-        data: desaCache,
+        // data: desaCache,
+        data: JSON.parse(desaCache),
       });
     }
     const desaFromDB = await Desa.findOne({
@@ -86,6 +88,16 @@ const getDesaById = async (req, res, next) => {
           [Op.eq]: req.params.id,
         },
       },
+      attributes: [
+        'uid',
+        'name',
+        'problem',
+        'lat_des',
+        'long_des',
+        'photo',
+        'contact_person',
+        ['mahasiswa_id', 'created_by']
+      ]
     });
     if (!desaFromDB) {
       return res.status(StatusCodes.OK).json({
